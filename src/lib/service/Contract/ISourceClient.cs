@@ -4,5 +4,5 @@ public interface ISourceClient
 {
     Task<IEnumerable<string>> FetchCities();
 
-    Task<WeatherDto?> GetWeather(string city);
+    Task<WeatherDto> FetchWeather(string city);
 }
