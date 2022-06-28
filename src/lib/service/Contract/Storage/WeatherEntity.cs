@@ -1,12 +1,20 @@
 ﻿namespace SunshineExpress.Service.Contract.Storage;
 
-internal class Weather : IEntity
+public class Weather : IEntity<Weather>
 {
-    IEntityId IEntity.EntityId => (IEntityId)EntityId;
+    private class EmptyEntityId : IEntityId<Weather>
+    {
+    }
 
-    public IEntityId<Weather> EntityId { get; }
+    public Weather()
+    {
+    }
 
-    public string City { get; init; }
+    IEntityId IEntity<Weather>.EntityId => (IEntityId)EntityId;
+
+    public IEntityId<Weather> EntityId { get; private set; } = new EmptyEntityId();
+
+    public string City { get; init; } = string.Empty;
 
     public double Temperature { get; init; }
 
@@ -14,7 +22,7 @@ internal class Weather : IEntity
 
     public int WindSpeed { get; init; }
 
-    public string Summary { get; init; }
+    public string Summary { get; init; } = string.Empty;
 
     public Weather(IEntityId<Weather> entityId, string city, double temperature, double precipitation, int windSpeed, string summary)
     {
@@ -37,4 +45,7 @@ internal class Weather : IEntity
 
     public WeatherDto ToDto()
         => new(City, Temperature, Precipitation, WindSpeed, Summary);
+
+    public void SetEntityId(IEntityId<Weather> entityId)
+        => EntityId = entityId;
 }
