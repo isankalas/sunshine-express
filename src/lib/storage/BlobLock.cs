@@ -3,7 +3,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 
-namespace SunshineExpress.Storage;
+namespace SunshineExpress.Storage.Blob;
 
 public class BlobLock : IAsyncDisposable
 {

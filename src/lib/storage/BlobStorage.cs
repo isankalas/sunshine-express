@@ -4,31 +4,33 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using SunshineExpress.Service.Contract;
 using SunshineExpress.Service.Contract.Storage;
-using SunshineExpress.Storage.Configuration;
-using SunshineExpress.Storage.Util;
+using SunshineExpress.Storage.Blob.Configuration;
+using SunshineExpress.Storage.Blob.Util;
 using System.Text;
 using System.Text.Json;
 
-namespace SunshineExpress.Storage;
+namespace SunshineExpress.Storage.Blob;
 
 public class BlobStorage : IStorageClient
 {
-    private readonly BlobServiceClient _serviceClient;
-    private BlobContainerClient? _containerClient;
-    private static readonly SemaphoreSlim _syncRoot = new(1);
-    private readonly string _containerName;
-    private readonly ILogger _logger;
+    private readonly BlobServiceClient serviceClient;
+    private BlobContainerClient? containerClient;
+    private static readonly SemaphoreSlim syncRoot = new(1);
+    private readonly string containerName;
+    private readonly ILogger logger;
 
     public BlobStorage(BlobStorageConfiguration configuration, ILogger<BlobStorage> logger)
     {
-        _serviceClient = new BlobServiceClient(configuration.ConnectionString);
-        _containerName = configuration.ContainerName;
-        _logger = logger;
+        serviceClient = new BlobServiceClient(configuration.ConnectionString);
+        containerName = configuration.ContainerName;
+        this.logger = logger;
     }
 
+    /// <inheritdoc />
     public IEntityId<TEntity> CreateEntityId<TEntity>(string entityKey) where TEntity : IEntity<TEntity>, new()
         => EntityId<TEntity>.Create(entityKey);
 
+    /// <inheritdoc />
     public virtual async Task<TEntity> Get<TEntity>(IEntityId<TEntity> entityId)
          where TEntity : IEntity<TEntity>, new()
     {
@@ -38,7 +40,7 @@ public class BlobStorage : IStorageClient
         var blobClient = client.GetBlobClient(name);
         if (!await blobClient.ExistsAsync().ConfigureAwait(false))
         {
-            _logger.LogDebug($"Blob {_containerName}/{name} does not exist.");
+            logger.LogDebug($"Blob {containerName}/{name} does not exist.");
             var result = new TEntity();
             result.SetEntityId(entityId);
             internalEntityId.SetBlobClient(blobClient);
@@ -48,13 +50,13 @@ public class BlobStorage : IStorageClient
 
         var properties = (await blobClient.GetPropertiesAsync()).Value;
         using var contentStream = new MemoryStream();
-        _logger.LogDebug($"Downloading the blob {typeof(TEntity).Name}/{name}.");
+        logger.LogDebug($"Downloading the blob {typeof(TEntity).Name}/{name}.");
         var blob = await blobClient.DownloadToAsync(contentStream, conditions: FixedETag(properties.ETag)).ConfigureAwait(false);
-        _logger.LogDebug($"Blob {_containerName}/{name} (size: {contentStream.Length}) downloaded successfully.");
+        logger.LogDebug($"Blob {containerName}/{name} (size: {contentStream.Length}) downloaded successfully.");
 
         var entity = JsonSerializer.Deserialize<TEntity>(Encoding.UTF8.GetString(contentStream.ToArray()));
         if (entity == null)
-            throw new Exception($"Deserialization of entity {_containerName}/{name} failed.");
+            throw new Exception($"Deserialization of entity {containerName}/{name} failed.");
 
         entity.SetEntityId(entityId);
         internalEntityId.SetBlobClient(blobClient);
@@ -63,9 +65,11 @@ public class BlobStorage : IStorageClient
         return entity;
     }
 
+    /// <inheritdoc />
     public virtual async Task Add<TEntity>(TEntity entity)
         where TEntity : IEntity<TEntity>, new()
     {
+        logger.LogDebug($"Adding a new entity {entity.EntityId}");
         var internalEntityId = (EntityId<TEntity>)entity.EntityId;
         if (internalEntityId.Exists)
             throw new InvalidOperationException("Cannot 'Add' existing entity, use 'Update' instead");
@@ -79,13 +83,16 @@ public class BlobStorage : IStorageClient
         internalEntityId.SetBlobClient(blobClient);
 
         var contents = JsonSerializer.Serialize(entity);
+        logger.LogDebug($"Uploading entity {entity.EntityId} to the storage.");
         var newVersion = await UploadBlobAsync(new MemoryStream(Encoding.UTF8.GetBytes(contents)), versionTag: null, blobClient, internalEntityId.CurrentLock?.LeaseId).ConfigureAwait(false);
         internalEntityId.VersionTag = newVersion;
     }
 
+    /// <inheritdoc />
     public virtual async Task Update<TEntity>(TEntity entity)
         where TEntity : IEntity<TEntity>, new()
     {
+        logger.LogDebug($"Updating entity {entity.EntityId}");
         var entityIdInternal = (EntityId<TEntity>)entity.EntityId;
         if (!entityIdInternal.Exists)
             throw new InvalidOperationException("Cannot 'Update' new entity, use 'Add' instead");
@@ -94,13 +101,16 @@ public class BlobStorage : IStorageClient
             throw new InvalidOperationException("Entity is missing its 'BlobClient'");
 
         var contents = JsonSerializer.Serialize(entity);
+        logger.LogDebug($"Uploading entity {entity.EntityId} to the storage.");
         var newVersion = await UploadBlobAsync(new MemoryStream(Encoding.UTF8.GetBytes(contents)), versionTag: entityIdInternal.VersionTag, entityIdInternal.BlobClient, entityIdInternal.CurrentLock?.LeaseId);
         entityIdInternal.VersionTag = newVersion;
     }
 
-    public Task AddOrUpdate<TEntity>(TEntity entity) where TEntity : IEntity<TEntity>, new()
+    /// <inheritdoc />
+    public virtual Task AddOrUpdate<TEntity>(TEntity entity) where TEntity : IEntity<TEntity>, new()
         => ((EntityId<TEntity>)entity.EntityId).Exists ? Update(entity) : Add(entity);
 
+    /// <inheritdoc />
     public virtual async Task<IAsyncDisposable> AcquireLock<TEntity>(IEntityId<TEntity> entity)
         where TEntity : IEntity<TEntity>, new()
     {
@@ -116,6 +126,7 @@ public class BlobStorage : IStorageClient
             IfMatch = etag,
         };
 
+    // Generic method to upload the contents of the blob to the storage.
     private static async Task<ETag?> UploadBlobAsync(Stream stream, ETag? versionTag, BlobClient blob, string? leaseId)
     {
         var conditions = new BlobRequestConditions();
@@ -135,22 +146,23 @@ public class BlobStorage : IStorageClient
         return response.Value.ETag;
     }
 
+    // Automatically creates the entity container if it does not exist yet.
     private async Task<BlobContainerClient> GetOrCreateContainerClient()
     {
-        await _syncRoot.RunLockedAsync(Task.Run(async () =>
+        await syncRoot.RunLockedAsync(Task.Run(async () =>
         {
-            if (_containerClient is null)
+            if (containerClient is null)
             {
-                if (_serviceClient is null)
+                if (serviceClient is null)
                     throw new InvalidOperationException("Cannot use Storage Client without serviceClient set");
 
-                _logger.LogDebug($"Creating container {_containerName} if it does not exist yet.");
-                _containerClient = _serviceClient.GetBlobContainerClient(_containerName);
-                await _containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
-                await _containerClient.SetAccessPolicyAsync(PublicAccessType.None).ConfigureAwait(false);
+                logger.LogDebug($"Creating container {containerName} if it does not exist yet.");
+                containerClient = serviceClient.GetBlobContainerClient(containerName);
+                await containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+                await containerClient.SetAccessPolicyAsync(PublicAccessType.None).ConfigureAwait(false);
             }
         })).ConfigureAwait(false);
 
-        return _containerClient!;
+        return containerClient!;
     }
 }

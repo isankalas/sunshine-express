@@ -3,7 +3,7 @@ using Azure.Storage.Blobs;
 using SunshineExpress.Service.Contract.Storage;
 using System.Text.RegularExpressions;
 
-namespace SunshineExpress.Storage;
+namespace SunshineExpress.Storage.Blob;
 
 public class EntityId<TEntity> : IEntityId<TEntity> where TEntity : IEntity<TEntity>
 {

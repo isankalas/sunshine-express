@@ -1,20 +1,21 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SunshineExpress.Cache.Configuration;
 using SunshineExpress.Client.Configuration;
 using SunshineExpress.Service.Configuration;
-using SunshineExpress.Storage.Configuration;
-
-using var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder
-    .SetMinimumLevel(LogLevel.Trace)
-    .AddConsole());
+using SunshineExpress.Storage.Blob.Configuration;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureServices((_, services) =>
     {
-        services.AddLogging(options => options.SetMinimumLevel(LogLevel.Debug).AddConsole());
+        services.AddLogging(options =>
+            options
+                .SetMinimumLevel(LogLevel.Debug)
+                .ClearProviders()
+                .AddFile("logs\\{Date}.log", minimumLevel: LogLevel.Debug)
+                // .AddConsole()
+                );
         services.AddWeatherService(options =>
             options
                 .UseConcurrentMemoryCache()

@@ -46,6 +46,7 @@ public class ConcurrentMemoryCache : ICache, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public async Task<IDisposable> AcquireLock(string key)
     {
         logger.LogDebug($"Acquiring cache lock for \"{key}\"");
@@ -56,9 +57,11 @@ public class ConcurrentMemoryCache : ICache, IDisposable
         return @lock;
     }
 
+    /// <inheritdoc />
     public void Set(string key, object value, TimeSpan expiration)
         => memoryCache.Set(key, value, expiration);
 
+    /// <inheritdoc />
     public bool TryGetValue<TValue>(string key, out TValue value)
         => memoryCache.TryGetValue(key, out value);
 

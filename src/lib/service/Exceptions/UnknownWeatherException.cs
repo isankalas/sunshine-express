@@ -2,6 +2,9 @@
 
 namespace SunshineExpress.Service.Exceptions;
 
+/// <summary>
+/// Used to indicate an invalid operation attempt in the application.
+/// </summary>
 [Serializable]
 public class UnknownWeatherException : Exception
 {

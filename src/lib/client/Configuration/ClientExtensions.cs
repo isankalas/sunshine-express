@@ -7,6 +7,7 @@ public static class ClientExtensions
 {
     public static IWeatherServiceBuilder UseApiSource(this IWeatherServiceBuilder builder, string apiUri, string username, string password)
     {
+        builder.Services.AddHttpClient();
         builder.Services.AddSingleton(_ => new SourceApiClientConfiguration
         {
             BaseUri = apiUri,

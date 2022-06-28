@@ -1,4 +1,5 @@
-﻿using SunshineExpress.Service.Contract.Storage;
+﻿using Microsoft.Extensions.Logging;
+using SunshineExpress.Service.Contract.Storage;
 using SunshineExpress.Service.Exceptions;
 using SunshineExpress.Service.Util;
 
@@ -9,33 +10,43 @@ public class WeatherService
     private readonly ISourceClient client;
     private readonly IStorageClient storage;
     private readonly ICache cache;
-
+    private readonly ILogger<WeatherService> logger;
     private int citiesCacheDuration = 60; // seconds
     private string citiesCacheKey = "cities";
 
-    public WeatherService(ISourceClient client, IStorageClient storage, ICache cache)
+    public WeatherService(ISourceClient client, IStorageClient storage, ICache cache, ILogger<WeatherService> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
         this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        this.logger = logger;
     }
 
     public virtual async Task<WeatherDto> FetchAndSave(string city)
     {
+        logger.LogDebug($"Fetching the weather data for {city}");
         var validCities = await GetCitiesInternal();
         if (!validCities.TryGetValue(city.RemoveDiacritics().ToLowerInvariant(), out var realCity))
+        {
+            logger.LogError($"Canot fetch weather data for {city} because the city is not recognized");
             throw new UnknownCityException(city);
+        }
 
+        logger.LogDebug($"Acquiring entity lock for {city}");
         IEntityId<Weather> entityId = storage.CreateEntityId<Weather>(realCity);
         await using var entityLock = await storage.AcquireLock(entityId);
+        var entity = await storage.Get(entityId);
 
+        logger.LogInformation($"Fetching the weather data for {city} from the data source");
         var weatherDto = await client.FetchWeather(realCity);
         if (weatherDto is null)
             throw new UnknownWeatherException(city);
 
-        var entity = Weather.FromDto(entityId, weatherDto);
+        logger.LogDebug($"Saving weather data for {city} into the storage.");
+        entity = Weather.FromDto(entityId, weatherDto);
         await storage.AddOrUpdate(entity);
 
+        logger.LogDebug($"Successfully fetched and saved weather data for {city}.");
         return weatherDto;
     }
 

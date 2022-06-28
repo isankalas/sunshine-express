@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SunshineExpress.Service;
@@ -34,7 +33,7 @@ internal sealed class ConsoleHostedService : IHostedService
                 try
                 {
                     var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    var cities = _configuration.GetValue<string>("cities").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var cities = _configuration.GetValue<string>("cities").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
                     _logger.LogInformation($"Starting with the following cities: {string.Join(", ", cities)}");
                     if (!cities.Any())
                     {
@@ -65,12 +64,13 @@ internal sealed class ConsoleHostedService : IHostedService
                             {
                                 try
                                 {
-                                    await Task.WhenAll(cities.Select(async city =>
+                                    Console.Clear();
+                                    foreach (var weather in await Task.WhenAll(cities.Select(city => _weatherService.FetchAndSave(city))))
                                     {
-                                        var weather = await _weatherService.FetchAndSave(city);
-                                        _logger.LogInformation($"Successfully fetched and saved weather data for {weather.City}");
-                                        Console.WriteLine(JsonSerializer.Serialize(weather, serializerOptions));
-                                    }).ToArray());
+                                        Console.WriteLine($"Current weather in {weather.City,-10} is {weather.Summary,-10}: " +
+                                            $"{weather.Temperature,3}°C, {weather.WindSpeed,3}m/s, {weather.Precipitation,3}%");
+                                    }
+
                                 }
                                 catch (Exception exception)
                                 {

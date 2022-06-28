@@ -1,4 +1,4 @@
-﻿namespace SunshineExpress.Storage.Configuration;
+﻿namespace SunshineExpress.Storage.Blob.Configuration;
 public class BlobStorageConfiguration
 {
     public string ConnectionString { get; set; } = string.Empty;

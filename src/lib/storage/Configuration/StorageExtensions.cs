@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SunshineExpress.Service.Configuration;
 using SunshineExpress.Service.Contract;
+using SunshineExpress.Storage.Blob;
 
-namespace SunshineExpress.Storage.Configuration;
+namespace SunshineExpress.Storage.Blob.Configuration;
 public static class StorageExtensions
 {
     public static IWeatherServiceBuilder UseBlobStorage(this IWeatherServiceBuilder builder, string connectionString, string container)

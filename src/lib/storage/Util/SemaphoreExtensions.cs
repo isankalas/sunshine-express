@@ -1,4 +1,4 @@
-﻿namespace SunshineExpress.Storage.Util;
+﻿namespace SunshineExpress.Storage.Blob.Util;
 
 /// <summary>
 /// Shorthand operations for running a piece of code within a <see cref="Semaphore"/> or <see cref="SemaphoreSlim"/> lock.

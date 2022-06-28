@@ -10,67 +10,89 @@ using System.Web;
 
 namespace SunshineExpress.Client;
 
+/// <summary>
+/// Implements the data source for the weather service which uses a REST API as its underlying data source.
+/// </summary>
 public class SourceApiClient : ISourceClient
 {
-    private readonly ILogger<SourceApiClient> _logger;
-    private readonly AsyncPolicy<HttpResponseMessage> _httpRequestPolicy;
-    private readonly AsyncPolicy<HttpResponseMessage> _httpAuthorizePolicy;
-    private readonly HttpClient _httpClient;
-    private readonly SourceApiClientConfiguration _configuration;
+    private readonly ILogger<SourceApiClient> logger;
+    private readonly AsyncPolicy<HttpResponseMessage> httpRequestPolicy;
+    private readonly AsyncPolicy<HttpResponseMessage> httpAuthorizePolicy;
+    private readonly HttpClient httpClient;
+    private readonly SourceApiClientConfiguration configuration;
 
-    private string? _authorization;
+    private string? authorization;
 
-    public SourceApiClient(SourceApiClientConfiguration configuration, ILogger<SourceApiClient> logger)
+    public SourceApiClient(SourceApiClientConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<SourceApiClient> logger)
     {
-        _logger = logger;
-        _configuration = configuration;
-        _httpClient = new HttpClient { BaseAddress = new Uri(configuration.BaseUri) };
+        this.logger = logger;
+        this.configuration = configuration;
+        httpClient = httpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(configuration.BaseUri);
 
-        _httpRequestPolicy = Policy.HandleResult<HttpResponseMessage>(
+        // Create a Polly policy for a regular API request
+        httpRequestPolicy = Policy.HandleResult<HttpResponseMessage>(
             r => r.StatusCode != HttpStatusCode.OK || r.Content.Headers.ContentLength == 0)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt), onRetryAsync: async (response, timespan) =>
             {
                 if (response.Result.StatusCode == HttpStatusCode.Unauthorized)
-                    await PerformReauthorization();
+                {
+                    logger.LogInformation("Authentication has not been performed or expired.");
+                    await Authenticate();
+                }
+                else
+                {
+                    logger.LogError("API request failed, retrying in a moment...");
+                }
             });
 
-        _httpAuthorizePolicy = Policy.HandleResult<HttpResponseMessage>(
+        // Create a Polly policy for the authentication API request
+        httpAuthorizePolicy = Policy.HandleResult<HttpResponseMessage>(
             r => r.StatusCode != HttpStatusCode.OK || r.Content.Headers.ContentLength == 0)
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt), onRetry: (response, timespan) =>
+            {
+                logger.LogError("Authentication request to the API failed, retrying in a moment...");
+            });
     }
 
+    /// <inheritdoc />
     public Task<IEnumerable<string>> FetchCities()
-        => SendRequestUsingPolicy<IEnumerable<string>>(_httpRequestPolicy, HttpMethod.Get, "cities", requestData: null);
+        => SendRequestUsingPolicy<IEnumerable<string>>(httpRequestPolicy, HttpMethod.Get, "cities", requestData: null);
 
+    /// <inheritdoc />
     public Task<WeatherDto> FetchWeather(string city)
-        => SendRequestUsingPolicy<WeatherDto>(_httpRequestPolicy, HttpMethod.Get, $"weathers/{HttpUtility.UrlEncode(city)}", requestData: null);
+        => SendRequestUsingPolicy<WeatherDto>(httpRequestPolicy, HttpMethod.Get, $"weathers/{HttpUtility.UrlEncode(city)}", requestData: null);
 
-    private async Task PerformReauthorization()
+    // Called whenever 401 Unauthorized is returned by the API
+    private async Task Authenticate()
     {
         var requestData = new
         {
-            username = _configuration.Username,
-            password = _configuration.Password
+            username = configuration.Username,
+            password = configuration.Password
         };
 
-        var response = await SendRequestUsingPolicy<AuthenticationResponse>(_httpAuthorizePolicy, HttpMethod.Post, "authorize", requestData);
+        logger.LogDebug("Performing API authentication.");
+        var response = await SendRequestUsingPolicy<AuthenticationResponse>(httpAuthorizePolicy, HttpMethod.Post, "authorize", requestData);
         if (string.IsNullOrEmpty(response.Token))
         {
-            _logger.LogError("API authentication failed.");
+            logger.LogError("API authentication failed.");
             throw new UnauthorizedAccessException("API authentication failed.");
         }
-        _authorization = response.Token;
+        authorization = response.Token;
+        logger.LogInformation("Successfully authenticated and fetched the token from the API.");
     }
 
     internal record AuthenticationResponse(string Token);
 
+    // Shorthand method to reuse the same logic of calling the API
     private async Task<TResponse> SendRequestUsingPolicy<TResponse>(AsyncPolicy<HttpResponseMessage> policy, HttpMethod method, string? requestUri, object? requestData)
     {
         var response = await policy.ExecuteAsync(async () =>
         {
             var requestMessage = new HttpRequestMessage(method, requestUri);
-            if (!string.IsNullOrEmpty(_authorization))
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(_authorization);
+            if (!string.IsNullOrEmpty(authorization))
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorization);
 
             if (requestData is not null)
             {
@@ -78,7 +100,7 @@ public class SourceApiClient : ISourceClient
                 requestMessage.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
             }
 
-            var response = await _httpClient.SendAsync(requestMessage);
+            var response = await httpClient.SendAsync(requestMessage);
             return response;
         });
 
@@ -90,7 +112,7 @@ public class SourceApiClient : ISourceClient
         });
         if (responseData is null)
         {
-            _logger.LogError("Received unexpected empty response from the API.");
+            logger.LogError("Received unexpected empty response from the API.");
             throw new Exception("Received unexpected empty response from the API.");
         }
 
