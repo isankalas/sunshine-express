@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SunshineExpress.WeatherApp": {
+      "commandName": "Project",
+      "commandLineArgs": "--cities Vilnius,Kaunas,Klaipeda,\"N'Djamena\""
+    }
+  }
+}
