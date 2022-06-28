@@ -9,16 +9,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{AA797021-764
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{6305B71B-572B-47D5-B260-D295723300DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Service", "lib\service\SunshineExpress.Service.csproj", "{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.Service", "lib\service\SunshineExpress.Service.csproj", "{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7FFE967-043B-4454-9B8E-97DF085F1796}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Client", "lib\client\SunshineExpress.Client.csproj", "{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.Client", "lib\client\SunshineExpress.Client.csproj", "{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Storage", "lib\storage\SunshineExpress.Storage.csproj", "{8BD067AC-B967-476A-B96E-0461B352453C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.Storage", "lib\storage\SunshineExpress.Storage.csproj", "{8BD067AC-B967-476A-B96E-0461B352453C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.Cache", "lib\cache\SunshineExpress.Cache.csproj", "{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{8BD067AC-B967-476A-B96E-0461B352453C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BD067AC-B967-476A-B96E-0461B352453C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BD067AC-B967-476A-B96E-0461B352453C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321} = {6305B71B-572B-47D5-B260-D295723300DA}
 		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3} = {6305B71B-572B-47D5-B260-D295723300DA}
 		{8BD067AC-B967-476A-B96E-0461B352453C} = {6305B71B-572B-47D5-B260-D295723300DA}
+		{500B35AC-9C6E-47D0-BCDB-94A6725D2FDC} = {6305B71B-572B-47D5-B260-D295723300DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C75EC6FD-BB28-4BC8-A7A5-C8BF63E15180}

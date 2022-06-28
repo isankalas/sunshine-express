@@ -1,4 +1,4 @@
-﻿namespace SunshineExpress.Service;
+﻿namespace SunshineExpress.Service.Contract;
 
 public interface ICache
 {
@@ -6,5 +6,5 @@ public interface ICache
 
     void Set(string key, object value, TimeSpan expiration);
 
-    IDisposable AcquireLock(string key);
+    Task<IDisposable> AcquireLock(string key);
 }
