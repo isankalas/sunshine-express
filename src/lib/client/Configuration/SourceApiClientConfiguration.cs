@@ -1,4 +1,4 @@
-﻿namespace SunshineExpress.Client;
+﻿namespace SunshineExpress.Client.Configuration;
 
 public record SourceApiClientConfiguration
 {
