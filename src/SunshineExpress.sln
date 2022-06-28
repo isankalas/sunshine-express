@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.WeatherApp", "app\SunshineExpress.WeatherApp.csproj", "{65DAC9B5-1257-4778-83A4-1D02E0EC29D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{AA797021-764B-432E-8386-DA290ED6655A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{6305B71B-572B-47D5-B260-D295723300DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Service", "lib\service\SunshineExpress.Service.csproj", "{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7FFE967-043B-4454-9B8E-97DF085F1796}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Client", "lib\client\SunshineExpress.Client.csproj", "{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunshineExpress.Storage", "lib\storage\SunshineExpress.Storage.csproj", "{8BD067AC-B967-476A-B96E-0461B352453C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{65DAC9B5-1257-4778-83A4-1D02E0EC29D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65DAC9B5-1257-4778-83A4-1D02E0EC29D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65DAC9B5-1257-4778-83A4-1D02E0EC29D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65DAC9B5-1257-4778-83A4-1D02E0EC29D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321}.Release|Any CPU.Build.0 = Release|Any CPU
+		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BD067AC-B967-476A-B96E-0461B352453C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD067AC-B967-476A-B96E-0461B352453C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD067AC-B967-476A-B96E-0461B352453C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BD067AC-B967-476A-B96E-0461B352453C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{65DAC9B5-1257-4778-83A4-1D02E0EC29D3} = {AA797021-764B-432E-8386-DA290ED6655A}
+		{DFF31D47-1F50-4A85-B8B9-6BCA6DA47321} = {6305B71B-572B-47D5-B260-D295723300DA}
+		{176E6DC1-E7E6-4660-86CB-182B0B45CEB3} = {6305B71B-572B-47D5-B260-D295723300DA}
+		{8BD067AC-B967-476A-B96E-0461B352453C} = {6305B71B-572B-47D5-B260-D295723300DA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C75EC6FD-BB28-4BC8-A7A5-C8BF63E15180}
+	EndGlobalSection
+EndGlobal
