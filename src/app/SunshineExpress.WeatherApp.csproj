@@ -7,4 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\lib\client\SunshineExpress.Client.csproj" />
+    <ProjectReference Include="..\lib\service\SunshineExpress.Service.csproj" />
+    <ProjectReference Include="..\lib\storage\SunshineExpress.Storage.csproj" />
+  </ItemGroup>
+
 </Project>
