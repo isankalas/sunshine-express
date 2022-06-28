@@ -7,7 +7,7 @@ public class UnknownCityException : Exception
 {
     public string City { get; }
 
-    public UnknownCityException(string city)
+    public UnknownCityException(string city) : base($"Unknown city: {city}")
     {
         City = city;
     }

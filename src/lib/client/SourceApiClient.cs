@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Polly;
+using SunshineExpress.Client.Configuration;
 using SunshineExpress.Service.Contract;
 using System.Net;
 using System.Net.Http.Headers;
@@ -27,7 +28,7 @@ public class SourceApiClient : ISourceClient
 
         _httpRequestPolicy = Policy.HandleResult<HttpResponseMessage>(
             r => r.StatusCode != HttpStatusCode.OK || r.Content.Headers.ContentLength == 0)
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt), onRetry: async (response, timespan) =>
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt), onRetryAsync: async (response, timespan) =>
             {
                 if (response.Result.StatusCode == HttpStatusCode.Unauthorized)
                     await PerformReauthorization();
@@ -52,13 +53,13 @@ public class SourceApiClient : ISourceClient
             password = _configuration.Password
         };
 
-        _authorization = string.Empty;
         var response = await SendRequestUsingPolicy<AuthenticationResponse>(_httpAuthorizePolicy, HttpMethod.Post, "authorize", requestData);
         if (string.IsNullOrEmpty(response.Token))
         {
             _logger.LogError("API authentication failed.");
             throw new UnauthorizedAccessException("API authentication failed.");
         }
+        _authorization = response.Token;
     }
 
     internal record AuthenticationResponse(string Token);
@@ -83,7 +84,10 @@ public class SourceApiClient : ISourceClient
 
         response.EnsureSuccessStatusCode();
         var responseJson = await response.Content.ReadAsStringAsync();
-        var responseData = JsonSerializer.Deserialize<TResponse>(responseJson);
+        var responseData = JsonSerializer.Deserialize<TResponse>(responseJson, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
         if (responseData is null)
         {
             _logger.LogError("Received unexpected empty response from the API.");
