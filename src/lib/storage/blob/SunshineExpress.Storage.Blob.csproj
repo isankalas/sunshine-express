@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\service\SunshineExpress.Service.csproj" />
+    <ProjectReference Include="..\..\service\SunshineExpress.Service.csproj" />
   </ItemGroup>
 
 </Project>

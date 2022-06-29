@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using SunshineExpress.Service.Contract.Storage;
 using SunshineExpress.Service.Exceptions;
 using SunshineExpress.Service.Util;
+
+[assembly: InternalsVisibleTo("SunshineExpress.Service.Test")]
 
 namespace SunshineExpress.Service;
 
@@ -22,7 +25,14 @@ public class WeatherService
         this.logger = logger;
     }
 
-    public virtual async Task<WeatherDto> FetchAndSave(string city)
+    /// <summary>
+    /// Fetches the weather data for the specified <paramref name="city"/> and persists it in the storage.
+    /// </summary>
+    /// <param name="city">City to fetch the weather for. It must be one of the supported cities.</param>
+    /// <returns>The current weather data for the city.</returns>
+    /// <exception cref="UnknownCityException">Invalid <paramref name="city"/> name was specified.</exception>
+    /// <exception cref="UnknownWeatherException">Failed fetching the weather data for the <paramref name="city"/>.</exception>
+    public virtual async Task<WeatherDto> GetWeather(string city)
     {
         logger.LogDebug($"Fetching the weather data for {city}");
         var validCities = await GetCitiesInternal();
@@ -32,27 +42,29 @@ public class WeatherService
             throw new UnknownCityException(city);
         }
 
-        logger.LogDebug($"Acquiring entity lock for {city}");
-        IEntityId<Weather> entityId = storage.CreateEntityId<Weather>(realCity);
-        await using var entityLock = await storage.AcquireLock(entityId);
-        var entity = await storage.Get(entityId);
-
         logger.LogInformation($"Fetching the weather data for {city} from the data source");
         var weatherDto = await client.FetchWeather(realCity);
         if (weatherDto is null)
             throw new UnknownWeatherException(city);
 
-        logger.LogDebug($"Saving weather data for {city} into the storage.");
-        entity = Weather.FromDto(entityId, weatherDto);
-        await storage.AddOrUpdate(entity);
+        await PersistWeather(weatherDto);
 
         logger.LogDebug($"Successfully fetched and saved weather data for {city}.");
         return weatherDto;
     }
 
+    /// <summary>
+    /// Checks if the specified <paramref name="city"/> is supported.
+    /// </summary>
+    /// <param name="city">City to check if it is supported by the service.</param>
+    /// <returns>A flag indicating whether the city is supported.</returns>
     public virtual async Task<bool> CityExists(string city)
         => (await GetCitiesInternal()).ContainsKey(city.RemoveDiacritics().ToLowerInvariant());
 
+    /// <summary>
+    /// Gets the list of all the cities supported by the service.
+    /// </summary>
+    /// <returns>The list of supported cities.</returns>
     public virtual async Task<IEnumerable<string>> GetCities()
         => (await GetCitiesInternal()).Values;
 
@@ -71,6 +83,27 @@ public class WeatherService
     public void SetCacheKey(string cacheKey)
         => citiesCacheKey = cacheKey ?? throw new ArgumentNullException(nameof(cacheKey));
 
+    /// <summary>
+    /// Persists the weather data into storage.
+    /// </summary>
+    /// <param name="weather">Data to persist.</param>
+    protected internal virtual async Task PersistWeather(WeatherDto weather)
+    {
+        var city = weather.City;
+        logger.LogDebug($"Acquiring entity lock for {city}");
+        IEntityId<Weather> entityId = storage.CreateEntityId<Weather>(city);
+        await using var entityLock = await storage.AcquireLock(entityId);
+        var entity = await storage.Get(entityId);
+
+        logger.LogDebug($"Saving weather data for {city} into the storage.");
+        entity = Weather.FromDto(entityId, weather);
+        await storage.AddOrUpdate(entity);
+    }
+
+    /// <summary>
+    /// Fetches and saves or takes from the cahce the list of normalized cities names along with their original names.
+    /// </summary>
+    /// <returns>A dictionary with key values representing city names without diacritics and in lower case and, values representing the original city names.</returns>
     protected internal virtual async Task<Dictionary<string, string>> GetCitiesInternal()
     {
         using var _ = await cache.AcquireLock(citiesCacheKey);

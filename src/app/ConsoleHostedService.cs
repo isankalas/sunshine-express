@@ -65,7 +65,7 @@ internal sealed class ConsoleHostedService : IHostedService
                                 try
                                 {
                                     Console.Clear();
-                                    foreach (var weather in await Task.WhenAll(cities.Select(city => _weatherService.FetchAndSave(city))))
+                                    foreach (var weather in await Task.WhenAll(cities.Select(city => _weatherService.GetWeather(city))))
                                     {
                                         Console.WriteLine($"Current weather in {weather.City,-10} is {weather.Summary,-10}: " +
                                             $"{weather.Temperature,3}°C, {weather.WindSpeed,3}m/s, {weather.Precipitation,3}%");

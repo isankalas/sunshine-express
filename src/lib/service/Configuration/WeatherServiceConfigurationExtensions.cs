@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace SunshineExpress.Service.Configuration;
 public static class WeatherServiceConfigurationExtensions
@@ -10,9 +11,25 @@ public static class WeatherServiceConfigurationExtensions
     /// <param name="configure">Additional actions to be performed for the service registration.</param>
     public static IServiceCollection AddWeatherService(this IServiceCollection services, Action<IWeatherServiceBuilder> configure)
     {
-        services.AddTransient<WeatherService>();
+        var builder = new WeatherServiceBuilder(services);
+        configure(builder);
 
-        configure(new WeatherServiceBuilder(services));
+        services.AddTransient(services =>
+        {
+            var service = new WeatherService(
+                services.GetRequiredService<ISourceClient>(),
+                services.GetRequiredService<IStorageClient>(),
+                services.GetRequiredService<ICache>(),
+                services.GetRequiredService<ILogger<WeatherService>>());
+
+            if (builder.CacheDurationMinutes.HasValue)
+                service.SetCacheDuration(builder.CacheDurationMinutes.Value);
+
+            if (builder.CacheKey is not null)
+                service.SetCacheKey(builder.CacheKey);
+
+            return service;
+        });
 
         return services;
     }

@@ -17,7 +17,14 @@
     <ProjectReference Include="..\lib\cache\SunshineExpress.Cache.csproj" />
     <ProjectReference Include="..\lib\client\SunshineExpress.Client.csproj" />
     <ProjectReference Include="..\lib\service\SunshineExpress.Service.csproj" />
-    <ProjectReference Include="..\lib\storage\SunshineExpress.Storage.Blob.csproj" />
+    <ProjectReference Include="..\lib\storage\blob\SunshineExpress.Storage.Blob.csproj" />
+    <ProjectReference Include="..\lib\storage\file\SunshineExpress.Storage.File.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
-﻿namespace SunshineExpress.Service.Contract.Storage;
+﻿using System.Text.Json.Serialization;
+
+namespace SunshineExpress.Service.Contract.Storage;
 
 public class Weather : IEntity<Weather>
 {
@@ -10,8 +12,10 @@ public class Weather : IEntity<Weather>
     {
     }
 
+    [JsonIgnore]
     IEntityId IEntity<Weather>.EntityId => (IEntityId)EntityId;
 
+    [JsonIgnore]
     public IEntityId<Weather> EntityId { get; private set; } = new EmptyEntityId();
 
     public string City { get; init; } = string.Empty;
