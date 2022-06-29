@@ -6,4 +6,5 @@ public interface IEntityId<TEntity> : IEntityId where TEntity : IEntity<TEntity>
 
 public interface IEntityId
 {
+    string? ToString();
 }

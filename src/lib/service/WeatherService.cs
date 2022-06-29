@@ -31,7 +31,6 @@ public class WeatherService
     /// <param name="city">City to fetch the weather for. It must be one of the supported cities.</param>
     /// <returns>The current weather data for the city.</returns>
     /// <exception cref="UnknownCityException">Invalid <paramref name="city"/> name was specified.</exception>
-    /// <exception cref="UnknownWeatherException">Failed fetching the weather data for the <paramref name="city"/>.</exception>
     public virtual async Task<WeatherDto> GetWeather(string city)
     {
         logger.LogDebug($"Fetching the weather data for {city}");
@@ -44,9 +43,6 @@ public class WeatherService
 
         logger.LogInformation($"Fetching the weather data for {city} from the data source");
         var weatherDto = await client.FetchWeather(realCity);
-        if (weatherDto is null)
-            throw new UnknownWeatherException(city);
-
         await PersistWeather(weatherDto);
 
         logger.LogDebug($"Successfully fetched and saved weather data for {city}.");

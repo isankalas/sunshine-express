@@ -14,6 +14,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7FFE967-043B-4454-9B8E-97DF085F1796}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunshineExpress.Client", "lib\client\SunshineExpress.Client.csproj", "{176E6DC1-E7E6-4660-86CB-182B0B45CEB3}"
