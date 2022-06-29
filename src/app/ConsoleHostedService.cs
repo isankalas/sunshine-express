@@ -33,7 +33,9 @@ internal sealed class ConsoleHostedService : IHostedService
                 try
                 {
                     var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    var cities = _configuration.GetValue<string>("cities").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
+                    var cities = _configuration.GetValue<string>("cities")?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList()
+                        ?? Enumerable.Empty<string>();
+
                     _logger.LogInformation($"Starting with the following cities: {string.Join(", ", cities)}");
                     if (!cities.Any())
                     {
